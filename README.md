@@ -54,7 +54,7 @@ python -c "from transformers import WhisperForConditionalGeneration; WhisperForC
 
 ```bash
 cd CT-Transformer-punctuation
-python -c "from huggingface_hub import hf_hub_download; hf_hub_download('iic/speech_cttransformer_cn_punc', 'punc.onnx', local_dir='.')"
+python -c "from huggingface_hub import hf_hub_download; hf_hub_download('iic/speech_cttransformer_cn_punc', 'punc.onnx', local_dir='cttpunctuator/src/onnx')"
 cd ..
 ```
 
@@ -81,6 +81,31 @@ python transcribe.py
 
 3. 在 `output` 文件夹查看结果
 
+## 🎬 示例
+
+### 输入音频
+
+一段 11 秒的中文语音测试文件，内容为绕口令和诗句：
+
+> 🎵 [示例音频.mp3](input/示例音频.mp3)
+
+### 转录结果
+
+```
+吃葡萄不吐葡萄皮儿，不吃葡萄到吐葡萄皮儿。床前明月光，一阵美人香，不知春梦里，网字硬邦邦。
+```
+
+**转录耗时：** 6.0 秒（音频时长 11 秒）
+
+**性能：** 实时率 (RTF) = 0.55，即转录速度约为音频时长的 1.8 倍
+
+### 输出文件
+
+| 格式 | 文件 | 说明 |
+|------|------|------|
+| TXT | [示例音频.txt](output/示例音频.txt) | 纯文本格式，包含分段信息 |
+| Markdown | [示例音频.md](output/示例音频.md) | Markdown 格式，适合文档嵌入 |
+
 ## 📁 项目结构
 
 ```
@@ -93,7 +118,11 @@ voice-to-text/
 ├── LICENSE                   # MIT 开源协议
 │
 ├── input/                    # 输入文件夹
+│   └── 示例音频.mp3           # 示例音频文件
+│
 ├── output/                   # 输出文件夹
+│   ├── 示例音频.txt           # TXT 格式输出
+│   └── 示例音频.md            # Markdown 格式输出
 │
 └── CT-Transformer-punctuation/  # 标点恢复模型
 ```
