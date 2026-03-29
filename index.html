@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音转文字 - Whisper Large-V3-Turbo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .card {
+            background: #0f0f23;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a4a;
+        }
+        .card-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .upload-area {
+            border: 3px dashed #3a3a5a;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #1a1a2e;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #1f1f3a;
+        }
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #252550;
+        }
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .upload-text {
+            color: #aaa;
+        }
+        .upload-hint {
+            color: #666;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        #fileInput {
+            display: none;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #2a2a4a;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: #3a3a5a;
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #2a2a4a;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .file-meta {
+            color: #666;
+            font-size: 12px;
+        }
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .progress-bar {
+            height: 8px;
+            background: #2a2a4a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+        .status-text {
+            color: #aaa;
+            font-size: 14px;
+            text-align: center;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .output-item {
+            padding: 15px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #2a2a4a;
+        }
+        .output-name {
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        .output-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #3a3a5a;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎤 语音转文字 <span class="badge">本地运行</span></h1>
+            <p class="subtitle">Whisper Large-V3-Turbo · Apple Silicon MPS 加速 · 完全免费</p>
+        </header>
+
+        <div class="card">
+            <div class="card-title">📤 上传音频文件</div>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">点击或拖拽文件到此处上传</div>
+                <div class="upload-hint">支持 m4a, mp3, wav, webm, mp4, mpeg 格式</div>
+            </div>
+            <input type="file" id="fileInput" accept=".m4a,.mp3,.wav,.webm,.mp4,.mpeg" multiple>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📥 待转录文件</div>
+            <div id="inputFiles" class="file-list">
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div>暂无待转录文件</div>
+                </div>
+            </div>
+            <div class="actions-bar">
+                <button class="btn btn-primary" id="transcribeAllBtn" onclick="startTranscribe()">
+                    🎯 开始转录全部
+                </button>
+            </div>
+        </div>
+
+        <div class="card" id="progressCard" style="display: none;">
+            <div class="card-title">
+                <span class="spinner"></span>
+                <span id="progressTitle">转录中...</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="status-text" id="statusText">准备中...</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📝 转录结果</div>
+            <div id="outputFiles" class="file-list">
+                <div class="empty-state">
+                    <div class="empty-icon">📄</div>
+                    <div>暂无转录结果</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let statusInterval = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        async function handleFiles(files) {
+            const uploadArea = document.getElementById('uploadArea');
+            const originalText = uploadArea.querySelector('.upload-text').textContent;
+            
+            for (const file of files) {
+                uploadArea.querySelector('.upload-text').textContent = `正在上传: ${file.name}...`;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                try {
+                    const res = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.error) {
+                        alert('上传失败: ' + data.error);
+                    }
+                } catch (err) {
+                    console.error('上传失败:', err);
+                    alert('上传失败: ' + err.message);
+                }
+            }
+            
+            uploadArea.querySelector('.upload-text').textContent = originalText;
+            refreshFiles();
+        }
+
+        async function refreshFiles() {
+            const res = await fetch('/api/files');
+            const data = await res.json();
+            
+            renderInputFiles(data.input_files);
+            renderOutputFiles(data.output_files);
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+
+        function renderInputFiles(files) {
+            const container = document.getElementById('inputFiles');
+            
+            if (files.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div>暂无待转录文件</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = files.map(f => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">🎵 ${f.name}</div>
+                        <div class="file-meta">${formatSize(f.size)} · ${f.modified}</div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="btn btn-primary btn-sm" onclick="transcribeOne('${f.name}')">
+                            转录
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteInput('${f.name}')">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderOutputFiles(files) {
+            const container = document.getElementById('outputFiles');
+            
+            if (files.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📄</div>
+                        <div>暂无转录结果</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = files.map(f => `
+                <div class="output-item">
+                    <div class="output-name">📄 ${f.name}</div>
+                    <div class="output-actions">
+                        <a href="/api/download/${f.txt}" class="btn btn-secondary btn-sm" download>
+                            📥 TXT
+                        </a>
+                        ${f.md ? `<a href="/api/download/${f.md}" class="btn btn-secondary btn-sm" download>
+                            📥 MD
+                        </a>` : ''}
+                        <button class="btn btn-danger btn-sm" onclick="deleteOutput('${f.name}')">
+                            删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function startTranscribe(filename = null) {
+            const btn = document.getElementById('transcribeAllBtn');
+            btn.disabled = true;
+            
+            document.getElementById('progressCard').style.display = 'block';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('statusText').textContent = '准备中...';
+
+            const body = filename ? JSON.stringify({ filename }) : '{}';
+            
+            await fetch('/api/transcribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body
+            });
+
+            startStatusPolling();
+        }
+
+        async function transcribeOne(filename) {
+            await startTranscribe(filename);
+        }
+
+        function startStatusPolling() {
+            if (statusInterval) clearInterval(statusInterval);
+            
+            statusInterval = setInterval(async () => {
+                const res = await fetch('/api/status');
+                const status = await res.json();
+                
+                document.getElementById('progressFill').style.width = status.progress + '%';
+                document.getElementById('statusText').textContent = status.message;
+                document.getElementById('progressTitle').textContent = 
+                    status.is_running ? `转录中... (${status.completed_files}/${status.total_files})` : '转录完成!';
+                
+                if (!status.is_running) {
+                    clearInterval(statusInterval);
+                    document.getElementById('transcribeAllBtn').disabled = false;
+                    setTimeout(() => {
+                        document.getElementById('progressCard').style.display = 'none';
+                        refreshFiles();
+                    }, 2000);
+                }
+            }, 500);
+        }
+
+        async function deleteInput(filename) {
+            await fetch(`/api/delete/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+            refreshFiles();
+        }
+
+        async function deleteOutput(filename) {
+            await fetch(`/api/delete-output/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+            refreshFiles();
+        }
+
+        refreshFiles();
+    </script>
+</body>
+</html>
