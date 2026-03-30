@@ -1,5 +1,7 @@
 # Voice to Text - 基于 Whisper 的语音转文字项目
 
+**中文** | [English](README_EN.md)
+
 一个基于 Whisper Large-V3-Turbo 模型的本地语音转文字应用，专为 Apple Silicon 优化，提供 Web 界面和命令行两种使用方式。
 
 ## ✨ 特性
@@ -113,7 +115,8 @@ voice-to-text/
 ├── app.py                    # Flask Web 应用
 ├── transcribe.py             # 命令行脚本
 ├── index.html                # Web 前端界面
-├── README.md                 # 使用说明
+├── README.md                 # 使用说明（中文）
+├── README_EN.md              # 使用说明（英文）
 ├── 技术文档.md                # 技术文档
 ├── LICENSE                   # MIT 开源协议
 │
